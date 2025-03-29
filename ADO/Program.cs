@@ -5,16 +5,11 @@ namespace ADO;
 
 class Program
 {
-    static void Main(string[] args)
-    {
-        Console.WriteLine(Directory.GetCurrentDirectory());
-    }
     // ReSharper disable once UnusedParameter.Local
-    static void Main1(string[] args)
+    static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         IConfiguration config = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("connection.json")
             .Build();
         
@@ -66,6 +61,7 @@ class Program
 
                 temp = true;
                 while (temp){
+                    Console.Clear();
                     List<string> nme;
                     HybridList<string> tdn;
                     string tmp;
@@ -78,10 +74,12 @@ class Program
                     Console.WriteLine("6 - Выбрать другую тб");
                     Console.WriteLine("Любое другое - Выйти");
                     Console.WriteLine("Выберете действие: ");
-                    switch (Console.ReadLine())
+                    string ch = Console.ReadLine();
+                    Console.Clear();
+                    switch (ch)
                     {
                         case "1":
-                            Console.WriteLine(tb);
+                            Console.WriteLine($"Таблица {tb}");
 
                             tablesQuery = $@"
                             SELECT COLUMN_NAME, DATA_TYPE 
@@ -103,7 +101,6 @@ class Program
                                     }
                                 }
                             }
-
                             break;
                         case "2":
                             tablesQuery = $@"
@@ -169,7 +166,6 @@ class Program
                             tablesQuery = $@"
                                         INSERT INTO dbo.{tb} ({string.Join(", ", nme)})
                                             VALUES ({string.Join(", ", nme.Select(s => $"@{s}"))})";
-                            Console.WriteLine(tablesQuery);
                             using (var columnCommand = new SqlCommand(tablesQuery, connection))
                             {
                                 foreach (var col in tdn)
@@ -177,7 +173,7 @@ class Program
                                     columnCommand.Parameters.AddWithValue($"@{tdn.GetKey(col)}", col);
                                 }
 
-                                Console.WriteLine(columnCommand.ExecuteNonQuery());
+                                Console.WriteLine(columnCommand.ExecuteNonQuery() == 1 ? "Операция прошла успешно" : "Операция не прошла успешно" );
                             }
 
                             break;
@@ -247,7 +243,6 @@ class Program
                                         UPDATE dbo.{tb}
                                         SET {string.Join(", ", nme.Select(s => $"{s} = @{s}"))}
                                         WHERE id = {c}";
-                            Console.WriteLine(tablesQuery);
                             using (var columnCommand = new SqlCommand(tablesQuery, connection))
                             {
                                 foreach (var col in tdn)
@@ -255,7 +250,7 @@ class Program
                                     columnCommand.Parameters.AddWithValue($"@{tdn.GetKey(col)}", col);
                                 }
 
-                                Console.WriteLine(columnCommand.ExecuteNonQuery());
+                                Console.WriteLine(columnCommand.ExecuteNonQuery() == 1 ? "Операция прошла успешно" : "Операция не прошла успешно" );
                             }
 
                             break;
@@ -294,11 +289,10 @@ class Program
                                         DELETE
                                         FROM dbo.{tb}
                                         WHERE id = @id";
-                            Console.WriteLine(tablesQuery);
                             using (var columnCommand = new SqlCommand(tablesQuery, connection))
                             {
                                 columnCommand.Parameters.AddWithValue($"@id", c);
-                                Console.WriteLine(columnCommand.ExecuteNonQuery());
+                                Console.WriteLine(columnCommand.ExecuteNonQuery() == 1 ? "Операция прошла успешно" : "Операция не прошла успешно" );
                             }
 
                             break;
@@ -308,6 +302,8 @@ class Program
                         default:
                             return;
                     }
+                    Console.WriteLine("Нажмите что бы продолжить: ");
+                    Console.ReadKey();
                 }
             }
         }
